@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Products</title>
+</head>
+<body>
+    <h1>Real-Time Products</h1>
+    <ul id="product-list">
+        {{#each products}}
+        <li>{{this.Title}} - {{this.Description}} - {{this.Price}}</li>
+        {{/each}}
+    </ul>
+
+    <form id="product-form">
+        <input type="text" name="Title" placeholder="Title">
+        <input type="text" name="Description" placeholder="Description">
+        <input type="text" name="Price" placeholder="Price">
+        <button type="submit">Add Product</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Actualizar la lista de productos cuando se reciba el evento productListUpdated
+        socket.on('productListUpdated', (products) => {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            products.forEach(product => {
+                const li = document.createElement('li');
+                li.textContent = `${product.Title} - ${product.Description} - ${product.Price}`;
+                productList.appendChild(li);
+            });
+        });
+
+        // Enviar el formulario para agregar un producto
+        const productForm = document.getElementById('product-form');
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(productForm);
+            const product = {
+                Title: formData.get('Title'),
+                Description: formData.get('Description'),
+                Price: formData.get('Price')
+            };
+            socket.emit('addProduct', product);
+            productForm.reset();
+        });
+    </script>
+</body>
+</html>
